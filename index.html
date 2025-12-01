@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Interactive Science Simulations</title>
+  <title>Sound Simulations for Primary Science</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
@@ -12,12 +12,10 @@
       --accent2: #38bdf8;
       --text: #f9fafb;
       --muted: #9ca3af;
-      --border-radius: 18px;
+      --radius: 18px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -26,19 +24,19 @@
       color: var(--text);
       min-height: 100vh;
       display: flex;
-      align-items: stretch;
       justify-content: center;
+      align-items: stretch;
       padding: 18px;
     }
 
     .app {
       width: 100%;
       max-width: 1100px;
-      background: radial-gradient(circle at top left, rgba(255,255,255,0.06), transparent 55%),
-                  linear-gradient(145deg, #020617 0%, #020111 40%, #050816 100%);
+      background: radial-gradient(circle at top left, rgba(248,250,252,0.06), transparent 55%),
+                  linear-gradient(145deg, #020617 0%, #020111 40%, #020617 100%);
       border-radius: 26px;
-      border: 1px solid rgba(148,163,184,0.4);
-      box-shadow: 0 28px 80px rgba(0,0,0,0.8);
+      border: 1px solid rgba(148,163,184,0.5);
+      box-shadow: 0 26px 80px rgba(0,0,0,0.9);
       padding: 20px 22px 18px;
       display: flex;
       flex-direction: column;
@@ -61,11 +59,10 @@
       gap: 8px;
     }
 
-    h1 span.emoji {
-      font-size: 1.8rem;
-    }
+    h1 span.emoji { font-size: 1.8rem; }
 
     .subtitle {
+      margin: 2px 0 0;
       font-size: 0.95rem;
       color: var(--muted);
       max-width: 520px;
@@ -82,23 +79,21 @@
       gap: 6px;
     }
 
-    .teacher-chip span.icon {
-      font-size: 1rem;
-    }
+    .teacher-chip span.icon { font-size: 1rem; }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 14px;
       margin-top: 6px;
     }
 
     .card {
       background: radial-gradient(circle at top, rgba(248,250,252,0.06), transparent 50%),
-                  linear-gradient(160deg, rgba(15,23,42,0.95), rgba(15,23,42,0.98));
-      border-radius: var(--border-radius);
-      border: 1px solid rgba(148,163,184,0.6);
-      padding: 12px 12px 10px;
+                  linear-gradient(160deg, rgba(15,23,42,0.98), rgba(15,23,42,0.96));
+      border-radius: var(--radius);
+      border: 1px solid rgba(148,163,184,0.7);
+      padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -110,15 +105,13 @@
       content: "";
       position: absolute;
       inset: -40%;
-      background: radial-gradient(circle at top left, rgba(250,204,21,0.15), transparent 50%);
+      background: radial-gradient(circle at top left, rgba(250,204,21,0.18), transparent 55%);
       opacity: 0;
       transition: opacity 0.2s ease;
       pointer-events: none;
     }
 
-    .card:hover::before {
-      opacity: 1;
-    }
+    .card:hover::before { opacity: 1; }
 
     .card-header {
       display: flex;
@@ -135,9 +128,7 @@
       font-weight: 600;
     }
 
-    .card-title span.icon {
-      font-size: 1.6rem;
-    }
+    .card-title span.icon { font-size: 1.6rem; }
 
     .card-tag {
       font-size: 0.7rem;
@@ -161,30 +152,27 @@
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
-      margin-top: 2px;
     }
 
     .pill {
       border-radius: 999px;
       padding: 2px 7px;
-      border: 1px solid rgba(148,163,184,0.6);
-      background: rgba(15,23,42,0.8);
+      border: 1px solid rgba(148,163,184,0.7);
+      background: rgba(15,23,42,0.9);
       display: inline-flex;
       align-items: center;
       gap: 4px;
     }
 
-    .pill span.icon {
-      font-size: 0.9rem;
-    }
+    .pill span.icon { font-size: 0.9rem; }
 
     .launch-row {
       margin-top: 6px;
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: 6px;
-      flex-wrap: wrap;
     }
 
     .launch-btn {
@@ -199,47 +187,28 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      box-shadow: 0 14px 30px rgba(0,0,0,0.8);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.9);
       text-decoration: none;
       transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
     }
 
-    .launch-btn span.icon {
-      font-size: 1rem;
-    }
+    .launch-btn span.icon { font-size: 1rem; }
 
     .launch-btn:hover {
       transform: translateY(-1px);
-      box-shadow: 0 18px 40px rgba(0,0,0,0.9);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.95);
       filter: brightness(1.04);
     }
 
     .launch-btn:active {
       transform: translateY(0);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.85);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.9);
     }
 
     .launch-note {
       font-size: 0.72rem;
       color: var(--muted);
-    }
-
-    .coming-soon {
-      opacity: 0.7;
-      border-style: dashed;
-    }
-
-    .coming-soon .launch-btn {
-      background: linear-gradient(135deg, rgba(148,163,184,0.6), rgba(55,65,81,0.9));
-      color: #e5e7eb;
-      box-shadow: none;
-      cursor: default;
-    }
-
-    .coming-soon .launch-btn:hover {
-      transform: none;
-      box-shadow: none;
-      filter: none;
+      flex: 1;
     }
 
     footer {
@@ -250,8 +219,8 @@
       padding-top: 6px;
       display: flex;
       flex-wrap: wrap;
+      gap: 10px;
       justify-content: space-between;
-      gap: 8px;
     }
 
     footer ul {
@@ -259,17 +228,11 @@
       padding-left: 16px;
     }
 
-    footer li {
-      margin-bottom: 2px;
-    }
+    footer li { margin-bottom: 2px; }
 
     @media (max-width: 700px) {
-      body {
-        padding: 10px;
-      }
-      .app {
-        padding: 14px 14px 12px;
-      }
+      body { padding: 10px; }
+      .app { padding: 14px 14px 12px; }
     }
   </style>
 </head>
@@ -278,109 +241,80 @@
     <header>
       <div>
         <h1>
-          <span class="emoji">🔬</span>
-          Interactive Science Simulations
+          <span class="emoji">🎼</span>
+          Sound Simulations for Primary Science
         </h1>
         <p class="subtitle">
-          A collection of small web labs for curious students. Click a card to open a simulation in a new tab.
+          Two interactive labs for 10–12 year olds: one for sound waves and instruments, and one for the ear and hearing range.
         </p>
       </div>
       <div class="teacher-chip">
         <span class="icon">👩‍🏫</span>
-        <span><strong>Teacher tip:</strong> let students predict what will happen before you press “Launch”.</span>
+        <span><strong>Teacher tip:</strong> let students predict what will happen before you click “Launch”.</span>
       </div>
     </header>
 
     <section class="grid">
-      <!-- SOUND WAVES LAB CARD -->
+      <!-- Card 1: instruments & waves -->
       <article class="card">
         <div class="card-header">
           <div class="card-title">
             <span class="icon">🎧</span>
-            <span>Sound Waves & Hearing Explorer</span>
+            <span>Sound Waves & Instruments Explorer</span>
           </div>
-          <span class="card-tag">Physics • Year 7–8</span>
+          <span class="card-tag">Physics • Waves</span>
         </div>
         <div class="card-body">
-          Explore how different instruments (trumpet, piano, guitar, ukulele) create sound waves.
-          Change pitch and loudness, and see what a human 5 m away can actually hear.
-          Great for introducing <strong>frequency</strong>, <strong>amplitude</strong>, and the
-          <strong>hearing range</strong> of different ages.
+          Play a trumpet, piano, guitar or ukulele and watch the sound waves change.
+          Adjust pitch and loudness, and change the listener’s age to see which frequencies they can hear.
         </div>
         <div class="card-meta">
           <span class="pill">
-            <span class="icon">🧪</span> Concept: sound, waves, hearing
+            <span class="icon">🧪</span> Frequency, amplitude, hearing range
           </span>
           <span class="pill">
-            <span class="icon">👦</span> Ages: ~10–13
+            <span class="icon">👦</span> Ages: about 10–13
           </span>
         </div>
         <div class="launch-row">
-          <!-- IMPORTANT: this link assumes your simulation file is named instruments.html -->
-          <!-- If your file has a different name, change the href to match -->
           <a href="instruments.html" class="launch-btn" target="_blank" rel="noopener">
             <span class="icon">🚀</span>
-            Launch Simulation
+            Launch simulation
           </a>
           <span class="launch-note">
-            Opens in a new tab. Ask: “How can we see loud vs quiet in the waves?”
+            Good starter for “What is sound?” and for linking to the ear structure lab.
           </span>
         </div>
       </article>
 
-      <!-- PLACEHOLDER FOR FUTURE SIM 1 -->
-      <article class="card coming-soon">
+      <!-- Card 2: ear structure & hearing -->
+      <article class="card">
         <div class="card-header">
           <div class="card-title">
-            <span class="icon">🌍</span>
-            <span>Simulation 2 – Your Next Idea</span>
+            <span class="icon">👂</span>
+            <span>Ear Structure & Hearing Range Lab</span>
           </div>
-          <span class="card-tag">Coming soon</span>
+          <span class="card-tag">Biology • Senses</span>
         </div>
         <div class="card-body">
-          You can reuse this card for another topic (for example: gravity & orbits, forces & motion,
-          or the water cycle). Change the title, description, and the link below.
+          Explore a cross-section of the ear. Click the outer ear, canal, eardrum, ossicles, cochlea and nerve
+          to see their jobs, then change age and pitch to find which sounds reach the brain.
         </div>
         <div class="card-meta">
           <span class="pill">
-            <span class="icon">✨</span> Replace with any subject
+            <span class="icon">🧠</span> Outer / middle / inner ear
           </span>
-        </div>
-        <div class="launch-row">
-          <!-- When ready, change example.html to your new file name and remove coming-soon styles -->
-          <a href="example.html" class="launch-btn">
-            Choose file & link it
-          </a>
-          <span class="launch-note">
-            Edit this card in <code>index.html</code> to connect a new simulation.
-          </span>
-        </div>
-      </article>
-
-      <!-- PLACEHOLDER FOR FUTURE SIM 2 -->
-      <article class="card coming-soon">
-        <div class="card-header">
-          <div class="card-title">
-            <span class="icon">🧬</span>
-            <span>Simulation 3 – Your Next Idea</span>
-          </div>
-          <span class="card-tag">Coming soon</span>
-        </div>
-        <div class="card-body">
-          Another reserved space. You might use this for a biology or chemistry interactive:
-          cells, diffusion, states of matter, or reactions.
-        </div>
-        <div class="card-meta">
           <span class="pill">
-            <span class="icon">🧑‍🔬</span> Student-friendly
+            <span class="icon">🎯</span> Hearing loss & ear health
           </span>
         </div>
         <div class="launch-row">
-          <a href="example2.html" class="launch-btn">
-            Choose file & link it
+          <a href="ear.html" class="launch-btn" target="_blank" rel="noopener">
+            <span class="icon">🚀</span>
+            Launch simulation
           </a>
           <span class="launch-note">
-            Duplicate this card for as many simulations as you like.
+            Great follow-up after the wave lab: “What happens to the wave once it hits the ear?”
           </span>
         </div>
       </article>
@@ -388,18 +322,17 @@
 
     <footer>
       <div>
-        <strong>How to add a new simulation:</strong>
+        <strong>Teacher ideas:</strong>
         <ul>
-          <li>Create a new <code>.html</code> file in the same GitHub repo.</li>
-          <li>Copy one of your simulations into it.</li>
-          <li>Change the <code>href="..."</code> in one of the cards above to point to that file.</li>
+          <li>Use the instruments lab first, then the ear lab to complete the story “from vibration to brain”.</li>
+          <li>Ask students to sketch the path of sound on paper while using the ear explorer.</li>
         </ul>
       </div>
       <div>
-        <strong>Student prompts:</strong>
+        <strong>Tech notes:</strong>
         <ul>
-          <li>“What do you predict will change when we move this slider?”</li>
-          <li>“Explain what the graph or waves are telling us in your own words.”</li>
+          <li>Both simulations run in a browser with no install needed.</li>
+          <li>If audio is muted, check the browser tab and system volume.</li>
         </ul>
       </div>
     </footer>
