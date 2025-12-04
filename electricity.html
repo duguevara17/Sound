@@ -100,6 +100,67 @@
       gap: 14px;
     }
 
+    .scene-window {
+      position: relative;
+      margin-top: 10px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: radial-gradient(circle at 40% 20%, rgba(255,147,211,0.2), transparent 50%),
+                  linear-gradient(145deg, rgba(16,26,53,0.92), rgba(14,21,51,0.96));
+      height: 220px;
+      perspective: 1400px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 18px 40px rgba(0,0,0,0.3);
+    }
+
+    .scene-layer {
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      background-size: cover;
+      background-position: center;
+      transform-style: preserve-3d;
+      transition: transform 0.15s ease, filter 0.25s ease;
+      filter: saturate(1.08);
+    }
+
+    .scene-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(11,18,38,0.05), rgba(11,18,38,0.6));
+      pointer-events: none;
+    }
+
+    .scene-hud {
+      position: absolute;
+      inset: auto 12px 12px 12px;
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(11,18,38,0.75);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      backdrop-filter: blur(6px);
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,147,211,0.8), rgba(124,210,255,0.5));
+      display: grid;
+      place-items: center;
+      color: #0a0f20;
+      font-weight: 900;
+      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.35);
+    }
+
+    .hud-info strong { color: #ffe7fa; }
+
     .panel {
       background: linear-gradient(160deg, var(--panel), var(--panel-2));
       border-radius: var(--radius);
@@ -207,6 +268,22 @@
       padding: 10px;
       display: grid;
       gap: 6px;
+      grid-template-columns: 110px 1fr;
+      align-items: center;
+    }
+
+    .thumb {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .inspect-body { display: grid; gap: 6px; }
+
     }
 
     .inspect-card header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -268,6 +345,7 @@
 
     .mini-map .here { background: rgba(255,147,211,0.18); color: #ffe8fb; border-color: rgba(255,147,211,0.7); font-weight: 800; }
 
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } .inspect-card { grid-template-columns: 1fr; } }
     @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
     @media (max-width: 720px) { body { padding: 10px; } .app { padding: 14px; } }
   </style>
@@ -289,6 +367,17 @@
     <div class="layout">
       <section class="panel">
         <h2>🏠 House Map <small>(click to move)</small></h2>
+        <div class="scene-window" id="scene-window">
+          <div class="scene-layer" id="scene-layer"></div>
+          <div class="scene-overlay"></div>
+          <div class="scene-hud">
+            <div class="avatar">YOU</div>
+            <div class="hud-info">
+              <div><strong id="hud-room">Hallway</strong></div>
+              <div class="blip" id="hud-detail">Look around for doorbell and breaker panel.</div>
+            </div>
+          </div>
+        </div>
         <div class="house-grid" id="house-grid"></div>
 
         <div class="controls">
@@ -352,6 +441,29 @@
 
   <script>
     const rooms = [
+      { id: 'hall', name: 'Hallway', hint: 'Doorbell & breaker panel', image: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80', items: [
+        { id: 'doorbell', label: 'Doorbell button', component: 'Switch', symbol: 'open/close gap', fact: 'Doorbells use a low-voltage push switch to close a circuit and fire the chime coil.', image: 'https://images.unsplash.com/photo-1527455663900-09993a6c3737?auto=format&fit=crop&w=600&q=80' },
+        { id: 'breaker', label: 'Breaker panel', component: 'Fuse/Breaker', symbol: 'box in series', fact: 'Breakers act like resettable fuses. They open when current is too high.', image: 'https://images.unsplash.com/photo-1582719478248-70e5718c3cf4?auto=format&fit=crop&w=600&q=80' }
+      ]},
+      { id: 'lounge', name: 'Lounge', hint: 'Lamp & dimmer', image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80', items: [
+        { id: 'lamp', label: 'Floor lamp', component: 'LED', symbol: 'diode with arrows', fact: 'LED lamps are efficient and need the correct polarity in DC circuits.', image: 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=600&q=80' },
+        { id: 'dimmer', label: 'Dimmer wheel', component: 'Variable Resistor', symbol: 'arrow through resistor', fact: 'Dimmers change resistance to limit current, so bulbs glow softer or brighter.', image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80' }
+      ]},
+      { id: 'kitchen', name: 'Kitchen', hint: 'Fridge light & outlet', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80', items: [
+        { id: 'fridge', label: 'Fridge door lamp', component: 'Switch', symbol: 'normally closed', fact: 'A hidden switch opens when the door shuts, turning the light off to save power.', image: 'https://images.unsplash.com/photo-1506368213639-47c1b07b7f63?auto=format&fit=crop&w=600&q=80' },
+        { id: 'outlet', label: 'Outlet tester', component: 'Conductor check', symbol: 'wires', fact: 'Conductors complete a path; insulators (plastic plugs) block current to keep you safe.', image: 'https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=600&q=80' }
+      ]},
+      { id: 'porch', name: 'Porch', hint: 'Night light with sensor', image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80', items: [
+        { id: 'nightlight', label: 'Porch light', component: 'LED', symbol: 'diode with arrows', fact: 'LEDs glow when forward-biased. Reverse them and almost no current flows.', image: 'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=600&q=80' },
+        { id: 'ldr', label: 'Light sensor', component: 'LDR', symbol: 'resistor with arrows', fact: 'LDR resistance drops in bright light and rises in the dark—perfect for auto lights.', image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80' }
+      ]},
+      { id: 'garage', name: 'Workshop', hint: 'Bench resistor & soldering lamp', image: 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80', items: [
+        { id: 'bench', label: 'Bench lamp', component: 'Switch', symbol: 'toggle', fact: 'Switches physically open or close a gap to control current.', image: 'https://images.unsplash.com/photo-1481277542470-605612bd2d61?auto=format&fit=crop&w=600&q=80' },
+        { id: 'resistor', label: 'Spare resistor', component: 'Fixed Resistor', symbol: 'zig-zag', fact: 'Resistors slow current. In series they also protect LEDs from burning out.', image: 'https://images.unsplash.com/photo-1581091012184-5c92d80b4d82?auto=format&fit=crop&w=600&q=80' }
+      ]},
+      { id: 'study', name: 'Study', hint: 'USB charger & indicator', image: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80', items: [
+        { id: 'charger', label: 'USB charger', component: 'LED indicator', symbol: 'diode + arrows', fact: 'Tiny LEDs show power is present. If off, check the switch or fuse first.', image: 'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?auto=format&fit=crop&w=600&q=80' },
+        { id: 'fan', label: 'Desk fan', component: 'Motor load', symbol: 'circle with M', fact: 'Motors convert electrical to kinetic energy—watch for fuses to avoid overload.', image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=600&q=80' }
       { id: 'hall', name: 'Hallway', hint: 'Doorbell & breaker panel', items: [
         { id: 'doorbell', label: 'Doorbell button', component: 'Switch', symbol: 'open/close gap', fact: 'Doorbells use a low-voltage push switch to close a circuit and fire the chime coil.' },
         { id: 'breaker', label: 'Breaker panel', component: 'Fuse/Breaker', symbol: 'box in series', fact: 'Breakers act like resettable fuses. They open when current is too high.' }
@@ -408,6 +520,7 @@
       document.getElementById('progress-bar').style.width = `${(scanned.size / rooms.reduce((a,r)=>a+r.items.length,0))*100}%`;
       renderMiniMap();
       renderInspectList();
+      updateScene();
     }
 
     function renderMiniMap() {
@@ -421,6 +534,16 @@
       list.innerHTML = room.items.map(item => {
         const done = scanned.has(item.id);
         return `<article class="inspect-card">
+          <img class="thumb" src="${item.image}" alt="${item.label} photo" loading="lazy" />
+          <div class="inspect-body">
+            <header>
+              <h3>${item.label}</h3>
+              <span class="symbol-tag">${item.component}</span>
+            </header>
+            <p class="blip">Symbol hint: ${item.symbol}</p>
+            <p class="blip">${item.fact}</p>
+            <button class="btn" onclick="scan('${item.id}')">${done ? 'Rescan' : 'Scan & add note'}</button>
+          </div>
           <header>
             <h3>${item.label}</h3>
             <span class="symbol-tag">${item.component}</span>
@@ -440,6 +563,14 @@
     function movePlayer(dir) {
       const next = neighbors[currentRoom][dir];
       if (next) { currentRoom = next; renderRooms(); }
+    }
+
+    function updateScene() {
+      const room = rooms.find(r => r.id === currentRoom);
+      const layer = document.getElementById('scene-layer');
+      layer.style.backgroundImage = `linear-gradient(140deg, rgba(11,18,38,0.35), rgba(11,18,38,0.05)), url(${room.image})`;
+      document.getElementById('hud-room').textContent = room.name;
+      document.getElementById('hud-detail').textContent = room.hint;
     }
 
     function scan(id) {
@@ -483,6 +614,20 @@
     document.addEventListener('keydown', (e) => {
       const map = { ArrowUp: 'up', w: 'up', ArrowDown: 'down', s: 'down', ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right' };
       if (map[e.key]) { movePlayer(map[e.key]); }
+    });
+
+    const sceneWindow = document.getElementById('scene-window');
+    const sceneLayer = document.getElementById('scene-layer');
+    sceneWindow.addEventListener('mousemove', (e) => {
+      const rect = sceneWindow.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      const rotateY = (x - 0.5) * 12;
+      const rotateX = (0.5 - y) * 10;
+      sceneLayer.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale(1.03)`;
+    });
+    sceneWindow.addEventListener('mouseleave', () => {
+      sceneLayer.style.transform = 'rotateY(0deg) rotateX(0deg) scale(1)';
     });
 
     renderRooms();
