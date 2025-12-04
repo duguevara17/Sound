@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Electricity Practice - House Circuit Runner</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --accent: #22d3ee;
+      --accent-2: #f472b6;
+      --gold: #facc15;
+      --text: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(244,114,182,0.12), transparent 45%),
+                  radial-gradient(circle at 78% 18%, rgba(34,211,238,0.14), transparent 50%),
+                  linear-gradient(135deg, #0b1327, #0f172a 50%, #0a1020 100%);
+      color: var(--text);
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1200px;
+      background: linear-gradient(145deg, rgba(17,24,39,0.95), rgba(17,24,39,0.9));
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    h1 { margin: 0; font-size: 1.6rem; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
+    h1 span.icon { font-size: 1.8rem; }
+
+    .subtitle { margin: 4px 0 0; color: #cbd5e1; line-height: 1.5; max-width: 820px; }
+
+    .hud {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      margin: 12px 0 10px;
+    }
+
+    .hud p { margin: 0; color: #cbd5e1; }
+
+    .hud strong { color: #fff; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(34,211,238,0.15);
+      border: 1px solid rgba(34,211,238,0.4);
+      color: #e0f2fe;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      background: #0a1020;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    canvas { display: block; width: 100%; height: auto; background: #0b1428; }
+
+    .overlay {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      background: rgba(17,24,39,0.9);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+      min-width: 200px;
+    }
+
+    .overlay h2 { margin: 0 0 6px; font-size: 0.98rem; }
+    .overlay .stat { font-weight: 800; color: var(--accent); }
+    .overlay ul { margin: 6px 0 0; padding-left: 16px; color: #cbd5e1; font-size: 0.92rem; }
+
+    .legend {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      background: rgba(17,24,39,0.9);
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,0.07);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+
+    .legend .row { display: grid; grid-template-columns: 18px 1fr; align-items: center; gap: 8px; margin-top: 4px; }
+    .legend .box { width: 18px; height: 18px; border-radius: 4px; }
+
+    footer { margin-top: 14px; color: #94a3b8; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1><span class="icon">⚡</span>Electricity Practice — House Circuit Runner</h1>
+      <span class="pill">Arrow keys or WASD to move</span>
+    </header>
+    <p class="subtitle">
+      Patrol the house and garden to tag every circuit part you can find. Each component you collect boosts your score, and the longer
+      you stay moving the higher your streak climbs. Hunt for LDR porch lights, LED strips, switches, resistors, fuses, and a hidden solar cell.
+    </p>
+
+    <div class="hud">
+      <p><strong>Goal:</strong> Find all the parts, rack up points, and keep exploring.</p>
+      <div class="pill">Score updates as you roam + 100 per discovery</div>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="game" width="1100" height="620"></canvas>
+      <div class="overlay">
+        <h2>Scanner</h2>
+        <div>Score: <span class="stat" id="score">0</span></div>
+        <div>Found: <span class="stat" id="found">0</span> / <span id="total">0</span></div>
+        <ul id="log"></ul>
+      </div>
+      <div class="legend">
+        <div class="row"><span class="box" style="background:#38bdf8"></span> Player</div>
+        <div class="row"><span class="box" style="background:#fbbf24"></span> Collectible</div>
+        <div class="row"><span class="box" style="background:#475569"></span> Wall</div>
+        <div class="row"><span class="box" style="background:#10b981"></span> Garden grass</div>
+      </div>
+    </div>
+
+    <footer>
+      Tip: Cut around walls, slip through the hallway, and sweep the backyard. Score ticks up slowly over time, but the big boosts come
+      from tagging every circuit part you see.
+    </footer>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    const state = {
+      player: { x: 120, y: 520, w: 28, h: 28, speed: 2.6 },
+      keys: {},
+      score: 0,
+      lastTime: performance.now(),
+      foundCount: 0,
+      log: []
+    };
+
+    const walls = [
+      { x: 0, y: 0, w: 1100, h: 14 }, // top
+      { x: 0, y: 606, w: 1100, h: 14 }, // bottom
+      { x: 0, y: 0, w: 14, h: 620 }, // left
+      { x: 1086, y: 0, w: 14, h: 620 }, // right
+      { x: 14, y: 140, w: 360, h: 14 }, // living wall
+      { x: 340, y: 140, w: 14, h: 240 }, // hallway vertical
+      { x: 14, y: 380, w: 340, h: 14 }, // hallway floor
+      { x: 14, y: 280, w: 220, h: 14 }, // kitchen divider
+      { x: 580, y: 14, w: 14, h: 300 }, // stairs
+      { x: 420, y: 300, w: 400, h: 14 }, // mid wall
+      { x: 820, y: 14, w: 14, h: 600 }, // garage wall
+      { x: 580, y: 460, w: 240, h: 14 }, // backyard step
+    ];
+
+    const grass = { x: 420, y: 474, w: 400, h: 132 };
+
+    const parts = [
+      { name: 'LED strip (living room)', x: 120, y: 80, color: '#f59e0b', collected: false },
+      { name: 'Switch (hallway)', x: 260, y: 210, color: '#f59e0b', collected: false },
+      { name: 'Fuse box (stairs)', x: 600, y: 40, color: '#f59e0b', collected: false },
+      { name: 'LDR porch light', x: 900, y: 100, color: '#f59e0b', collected: false },
+      { name: 'Resistor dimmer', x: 480, y: 360, color: '#f59e0b', collected: false },
+      { name: 'LED night-light', x: 200, y: 330, color: '#f59e0b', collected: false },
+      { name: 'Garden solar cell', x: 680, y: 540, color: '#f59e0b', collected: false },
+      { name: 'LDR garden lamp', x: 500, y: 520, color: '#f59e0b', collected: false },
+      { name: 'Garage resistor pack', x: 940, y: 400, color: '#f59e0b', collected: false },
+      { name: 'Switch + LED tester', x: 700, y: 200, color: '#f59e0b', collected: false },
+    ];
+
+    document.getElementById('total').textContent = parts.length;
+
+    const keysDown = {};
+    window.addEventListener('keydown', (e) => {
+      keysDown[e.key.toLowerCase()] = true;
+    });
+    window.addEventListener('keyup', (e) => {
+      keysDown[e.key.toLowerCase()] = false;
+    });
+
+    function rectsOverlap(a, b) {
+      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    function movePlayer(dt) {
+      const { player } = state;
+      let dx = 0, dy = 0;
+      if (keysDown['arrowup'] || keysDown['w']) dy -= 1;
+      if (keysDown['arrowdown'] || keysDown['s']) dy += 1;
+      if (keysDown['arrowleft'] || keysDown['a']) dx -= 1;
+      if (keysDown['arrowright'] || keysDown['d']) dx += 1;
+
+      if (dx !== 0 || dy !== 0) {
+        const len = Math.hypot(dx, dy) || 1;
+        dx = (dx / len) * player.speed * dt;
+        dy = (dy / len) * player.speed * dt;
+
+        const next = { ...player, x: player.x + dx, y: player.y + dy };
+        if (!walls.some(w => rectsOverlap(next, w))) {
+          player.x = next.x;
+          player.y = next.y;
+        }
+      }
+    }
+
+    function drawBackground() {
+      ctx.fillStyle = '#0b1428';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // garden
+      ctx.fillStyle = '#0f2c22';
+      ctx.fillRect(grass.x, grass.y, grass.w, grass.h);
+    }
+
+    function drawWalls() {
+      ctx.fillStyle = '#475569';
+      walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
+    }
+
+    function drawParts() {
+      parts.forEach(p => {
+        ctx.fillStyle = p.collected ? 'rgba(251,191,36,0.35)' : '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+        ctx.stroke();
+      });
+    }
+
+    function drawPlayer() {
+      const { x, y, w, h } = state.player;
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = '#0ea5e9';
+      ctx.strokeRect(x, y, w, h);
+    }
+
+    function updateScore(dt) {
+      // trickle score for movement time
+      state.score += dt * 2; // slow time-based drift
+      parts.forEach(p => {
+        if (!p.collected && Math.hypot(state.player.x - p.x, state.player.y - p.y) < 28) {
+          p.collected = true;
+          state.foundCount += 1;
+          state.score += 100;
+          state.log.unshift(`Tagged: ${p.name}`);
+          renderLog();
+        }
+      });
+    }
+
+    function renderLog() {
+      const logEl = document.getElementById('log');
+      logEl.innerHTML = state.log.slice(0, 5).map(item => `<li>${item}</li>`).join('');
+      document.getElementById('score').textContent = state.score.toFixed(0);
+      document.getElementById('found').textContent = state.foundCount;
+    }
+
+    function loop(now) {
+      const dt = Math.min((now - state.lastTime) / 16.67, 3); // normalize to ~60fps steps
+      state.lastTime = now;
+
+      movePlayer(dt);
+      updateScore(dt);
+
+      drawBackground();
+      drawWalls();
+      drawParts();
+      drawPlayer();
+
+      requestAnimationFrame(loop);
+    }
+
+    renderLog();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
